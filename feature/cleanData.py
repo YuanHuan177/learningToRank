@@ -77,16 +77,13 @@ mutualIndexLiang = SelectKBest(mutual_info_classif, k=18).fit_transform(Standard
 # 4. 备份特征
 dealFeature = pd.concat([pd.DataFrame(mutualIndexLiang), pd.DataFrame(mutualIndexXing.todense())],
                         axis=1)  # 备份标准化后的数据，todense()是矩阵化
-#dealedFeatures = pd.concat([dealFeature, allDataDf['XYFZ'].reset_index(drop=True)], axis=1).set_index('nsrdzdah',
-#                                                                                                      axis=1)
-
-dealedFeatures = pd.merge(dealFeature.set_index(nsrdzdah), allDataDf['XYFZ'], on="nsrdzdah")
-
-print dealedFeatures.axes
+dealedFeatures = pd.concat([dealFeature.set_index(nsrdzdah), pd.DataFrame(allDataDf['XYFZ'])], axis=1)
+dealedFeatures.columns = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
+                          27, 28, 29, 30, 31, 32, 'XYFZ']
 print dealedFeatures.shape
+
+joblib.dump(dealedFeatures, r"../data/dealedFeatures.jl")
+joblib.dump(label, r"../data/label.jl")
+
 # dealedFeatures.columns = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
 #                           27, 28, 29, 30, 31, 32, 'XYFZ']
-#
-# joblib.dump(dealedFeatures, r"../data/dealedFeatures.jl")
-# joblib.dump(label, r"../data/label.jl")
-# joblib.dump(allDataDf['XYFZ'], r"../data/xyfz.jl")
