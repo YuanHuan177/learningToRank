@@ -25,7 +25,7 @@ allDataDf = pd.read_pickle(r"../data/allData.pickle")
 allDataDf = allDataDf[column_order]
 nsrdzdah = allDataDf['nsrdzdah']
 
-allDataDf.set_index('nsrdzdah', inplace=True)
+#allDataDf.set_index('nsrdzdah', inplace=True)
 lossData = pd.DataFrame((allDataDf.shape[0] - allDataDf.count()) / allDataDf.shape[0])
 dataDesc = pd.DataFrame(allDataDf.describe())
 # dataDesc.to_csv(r"../data/dataDesc.csv", index=False, encoding="utf-8-sig")
@@ -75,15 +75,28 @@ for m in mi:
 mutualIndexLiang = SelectKBest(mutual_info_classif, k=18).fit_transform(StandardIndex, label)  # 互信息法特征选择
 
 # 4. 备份特征
-dealFeature = pd.concat([pd.DataFrame(mutualIndexLiang), pd.DataFrame(mutualIndexXing.todense())],
+dealFeature = pd.concat([nsrdzdah,pd.DataFrame(mutualIndexLiang), pd.DataFrame(mutualIndexXing.todense()),allDataDf['XYFZ'],label],
                         axis=1)  # 备份标准化后的数据，todense()是矩阵化
-dealedFeatures = pd.concat([dealFeature.set_index(nsrdzdah), pd.DataFrame(allDataDf['XYFZ'])], axis=1)
-dealedFeatures.columns = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
-                          27, 28, 29, 30, 31, 32, 'XYFZ']
-print dealedFeatures.shape
+dealFeature.columns = ['nsrdzdah',1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
+                          27, 28, 29, 30, 31, 32,'XYFZ','WTBZ']
+print dealFeature.shape
+print dealFeature
+joblib.dump(dealFeature, r"../data/dealedFeature.jl")
 
-joblib.dump(dealedFeatures, r"../data/dealedFeatures.jl")
-joblib.dump(label, r"../data/label.jl")
+
+# print dealFeature.shape
+# print allDataDf['XYFZ']
+# print label
+#
+# dealedFeaturestemp = pd.concat([allDataDf['XYFZ'],label], axis=1).reset_index(drop=True)
+# dealedFeatures= dealFeature
+# print dealedFeatures
+# dealedFeatures.columns = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
+#                           27, 28, 29, 30, 31, 32,'XYFZ','WTBZ']
+# dealedFeatures['nsrdzdah']=dealedFeatures.index
+# dealedFeatures.reset_index(drop=True)
+# print dealedFeatures
+# print dealedFeatures.shape
 
 # dealedFeatures.columns = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
 #                           27, 28, 29, 30, 31, 32, 'XYFZ']
