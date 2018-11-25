@@ -10,6 +10,7 @@ cost = np.array([[0, 0], [0, 0]])
 from sklearn.metrics import classification_report, precision_score, recall_score, f1_score, accuracy_score, \
     roc_auc_score, confusion_matrix
 
+
 def evalu(y_test, y_pre):
     # 第1个指标是每个cost矩阵对应的cost
     my_matrix = confusion_matrix(y_test, y_pre)
@@ -24,6 +25,7 @@ def evalu(y_test, y_pre):
     recall_list = recall_score(y_test, y_pre, average=None)
     print('G-mean = ', G_mean(recall_list))
     print("my cost = ", get_cost(my_matrix, cost))
+
 
 # 获得评价指标G-mean
 def G_mean(lists):
