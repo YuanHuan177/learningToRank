@@ -2,64 +2,63 @@
 #  -*- coding: utf-8 -*-
 #  @Time : 2018/11/16 14:44
 #  @Author : lg
-#  @File : AllSql.py
+#  @File : AllSql_all.py  为了给分数  当wtbz 为 null 的给其得分
 
 # -*- coding: utf8 -*-
-column_order = ['nsrdzdah', 'ZCDZ_YB', 'LSGX', 'HY', 'DJZCLX', 'KY_MONTH', 'NSRZT', 'NSRLX', 'ZCDNSR_NUM', 'ZRR_NUM',
+column_order_all = ['nsrdzdah', 'ZCDZ_YB', 'LSGX', 'HY', 'DJZCLX', 'KY_MONTH', 'NSRZT', 'NSRLX', 'ZCDNSR_NUM', 'ZRR_NUM',
                 'FDDBR_AGE', 'FDDBR_JG', 'CWFZR_AGE', 'CWFZR_REGION', 'BSR_AGE', 'BSR_REGION', 'CYRS', 'TZZE', 'ZCZB',
                 'NXXZE', 'XFQC_NUM', 'NGXZE', 'GFQC_NUM', 'SF_RATIO_AVG', 'SF_AVG', 'SJDKSE_RATIO_AVG',
-                'YNSE_RATIO_AVG', 'XFJSHJ_MEAN', 'XFJSHJ_MEDIAN', 'IS_JC', 'AJLY', 'SSFYL', 'LRL', 'XYFZ','WTBZ']
+                'YNSE_RATIO_AVG', 'XFJSHJ_MEAN', 'XFJSHJ_MEDIAN', 'IS_JC', 'AJLY', 'XSFYL', 'LRL']
 
-
-table_list = {
+table_list_all = {
     'ZCDZ_YB':  # 注册地址邮编
         '''
         SELECT
           b.nsrdzdah,
           TO_NUMBER(substr(a.ZCD_YB, 1, 4)) as ZCDZ_YB
-        FROM DJ_NSRXX_KZ a RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) b ON a.NSRDZDAH = b.nsrdzdah
+        FROM DJ_NSRXX_KZ a RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) b ON a.NSRDZDAH = b.nsrdzdah
         ''',
     'LSGX':  # 隶属关系
         '''
        SELECT
           b.nsrdzdah,
           TO_NUMBER(a.lsgx_dm) as LSGX
-        FROM DJ_NSRXX a RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) b ON a.NSRDZDAH = b.nsrdzdah
+        FROM DJ_NSRXX a RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) b ON a.NSRDZDAH = b.nsrdzdah
         ''',
     'HY':  # 行业
         '''
        SELECT
           b.nsrdzdah,
           TO_NUMBER(a.hy_dm) as HY
-        FROM DJ_NSRXX a RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) b ON a.NSRDZDAH = b.nsrdzdah
+        FROM DJ_NSRXX a RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) b ON a.NSRDZDAH = b.nsrdzdah
          ''',
     'DJZCLX':  # 登记注册类型
         '''
         SELECT
           b.nsrdzdah,
           TO_NUMBER(a.DJZCLX_DM) as DJZCLX
-        FROM DJ_NSRXX a RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) b ON a.NSRDZDAH = b.nsrdzdah
+        FROM DJ_NSRXX a RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) b ON a.NSRDZDAH = b.nsrdzdah
         ''',
     'KY_MONTH':  # 开业至今月数
         '''
         SELECT
           b.nsrdzdah,
           round(months_between(SYSDATE, KYSLRQ)) AS KY_MONTH
-        FROM DJ_NSRXX_KZ a RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) b ON a.NSRDZDAH = b.nsrdzdah
+        FROM DJ_NSRXX_KZ a RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) b ON a.NSRDZDAH = b.nsrdzdah
         ''',
     'NSRZT':  # 纳税人状态
         '''
         SELECT
           b.nsrdzdah,
           TO_NUMBER(a.NSRZT_dm) as NSRZT
-        FROM DJ_NSRXX a RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) b ON a.NSRDZDAH = b.nsrdzdah
+        FROM DJ_NSRXX a RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) b ON a.NSRDZDAH = b.nsrdzdah
         ''',
     'NSRLX':  # 一般纳税人标识
         '''
         SELECT
           b.nsrdzdah,
           (CASE WHEN a.YBNSR_BZ IS NULL THEN 0 ELSE 1 END) as NSRLX
-        FROM DJ_NSRXX_KZ a RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) b ON a.NSRDZDAH = b.nsrdzdah
+        FROM DJ_NSRXX_KZ a RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) b ON a.NSRDZDAH = b.nsrdzdah
         ''',
     'ZCDNSR_NUM':  # 注册地址的注册纳税人个数
         '''
@@ -76,7 +75,7 @@ table_list = {
                  FROM DJ_NSRXX_KZ
                  GROUP BY ZCDZ) a, DJ_NSRXX_KZ b
            WHERE a.ZCDZ = b.ZCDZ)
-          p RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) q ON p.NSRDZDAH = q.nsrdzdah
+          p RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) q ON p.NSRDZDAH = q.nsrdzdah
         ''',
     'ZRR_NUM':  # 关联自然人(投资方、股东)个数
         '''
@@ -91,15 +90,18 @@ table_list = {
                 NSRDZDAH,
                 count(DISTINCT (ZJHM)) AS TZF
               FROM DJ_TZF a
+              WHERE EXTRACT (YEAR FROM a.LRRQ) <2016
               GROUP BY NSRDZDAH) a 
               full join
           (
             SELECT XH.NSRDZDAH,count(DISTINCT (GD.ZJHM)) AS GD
             FROM SB_NDSDS_2014 xh, SB_NDSDS_2014_JCXX_GD gd 
             WHERE XH.PZXH = GD.PZXH 
+            AND   EXTRACT (YEAR FROM xh.sssq_q) < 2016
+            AND EXTRACT (YEAR FROM xh.sssq_z) > 2014
             GROUP BY XH.NSRDZDAH
           )b on  a.NSRDZDAH=B.NSRDZDAH) a
-        RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) b ON a.NSRDZDAH = b.nsrdzdah
+        RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) b ON a.NSRDZDAH = b.nsrdzdah       
         ''',
     'FDDBR_AGE':  # 法定代表人年龄
         '''
@@ -117,14 +119,14 @@ table_list = {
               117 - TO_NUMBER(substr(ZJHM, 9, 2)) AS FDDBRage
             FROM DJ_NSRXX
             WHERE REGEXP_LIKE(ZJHM, '^[0-9]{17}([0-9]|X)$')))
-          p RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) q ON p.NSRDZDAH = q.nsrdzdah
+          p RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) q ON p.NSRDZDAH = q.nsrdzdah
         ''',
     'FDDBR_JG':  # 法定代表人籍贯
         '''
         SELECT
           b.nsrdzdah,
           substr(ZJHM, 1, 2) AS FDDBR_JG
-        FROM (Select * from DJ_NSRXX WHERE REGEXP_LIKE(ZJHM, '^[0-9]{2}.*$')) a RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) b ON a.NSRDZDAH = b.nsrdzdah
+        FROM (Select * from DJ_NSRXX WHERE REGEXP_LIKE(ZJHM, '^[0-9]{2}.*$')) a RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) b ON a.NSRDZDAH = b.nsrdzdah
         ''',
     'CWFZR_AGE':  # 财务负责人年龄
         '''
@@ -143,14 +145,14 @@ table_list = {
               117 - TO_NUMBER(substr(CWFZR_ZJHM, 9, 2)) AS CWFZRage
             FROM DJ_NSRXX_KZ
             WHERE REGEXP_LIKE(CWFZR_ZJHM, '^[0-9]{17}([0-9]|X)$')))
-          p RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) q ON p.NSRDZDAH = q.nsrdzdah
+          p RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) q ON p.NSRDZDAH = q.nsrdzdah
         ''',
     'CWFZR_REGION':  # 财务负责人所属地区
         '''
         SELECT
           b.nsrdzdah,
           substr(a.CWFZR_ZJHM, 1, 2) AS CWFZR_REGION
-        FROM (Select * from DJ_NSRXX_KZ WHERE REGEXP_LIKE(CWFZR_ZJHM, '^[0-9]{2}.*$')) a RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) b ON a.NSRDZDAH = b.nsrdzdah
+        FROM (Select * from DJ_NSRXX_KZ WHERE REGEXP_LIKE(CWFZR_ZJHM, '^[0-9]{2}.*$')) a RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) b ON a.NSRDZDAH = b.nsrdzdah
         ''',
     'BSR_AGE':  # 办税人年龄
         '''
@@ -169,21 +171,21 @@ table_list = {
               117 - TO_NUMBER(substr(BSR_ZJHM, 9, 2)) AS BSRage
             FROM DJ_NSRXX_KZ
             WHERE REGEXP_LIKE(BSR_ZJHM, '^[0-9]{17}([0-9]|X)$')))
-          p RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) q ON p.NSRDZDAH = q.nsrdzdah
+          p RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) q ON p.NSRDZDAH = q.nsrdzdah
         ''',
     'BSR_REGION':  # 办税人所属地区
         '''
         SELECT
           b.nsrdzdah,
           substr(a.BSR_ZJHM, 1, 2) AS BSR_REGION
-        FROM (Select * from DJ_NSRXX_KZ WHERE REGEXP_LIKE(BSR_ZJHM, '^[0-9]{2}.*$')) a RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) b ON a.NSRDZDAH = b.nsrdzdah
+        FROM (Select * from DJ_NSRXX_KZ WHERE REGEXP_LIKE(BSR_ZJHM, '^[0-9]{2}.*$')) a RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) b ON a.NSRDZDAH = b.nsrdzdah
         ''',
     'CYRS':  # 从业人数
         '''
         SELECT
           b.nsrdzdah,
           CYRS
-        FROM DJ_NSRXX_KZ a RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) b ON a.NSRDZDAH = b.nsrdzdah
+        FROM DJ_NSRXX_KZ a RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) b ON a.NSRDZDAH = b.nsrdzdah
         ''',
     'TZZE':  # 投资总额
         '''
@@ -194,14 +196,15 @@ table_list = {
                 NSRDZDAH,
                 sum(TZJE) AS TZZE
               FROM DJ_TZF a
-              GROUP BY NSRDZDAH) a RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) b ON a.NSRDZDAH = b.nsrdzdah
+              WHERE EXTRACT (YEAR FROM a.LRRQ) <2016
+              GROUP BY NSRDZDAH) a RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) b ON a.NSRDZDAH = b.nsrdzdah
         ''',
     'ZCZB':  # 注册资本
         '''
         SELECT
           b.nsrdzdah,
           ZCZB
-        FROM DJ_NSRXX_KZ a RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) b ON a.NSRDZDAH = b.nsrdzdah
+        FROM DJ_NSRXX_KZ a RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) b ON a.NSRDZDAH = b.nsrdzdah
         ''',
     'NXXZE':  # 年销项总额
         '''
@@ -212,19 +215,13 @@ table_list = {
           (SELECT
              b.NSRDZDAH,
              sum(a.FP_ZZSZYFP_SYQYGS_sum) AS FP_ZZSZYFP_SYQYGS_sum
-           FROM ((SELECT
-                    XF_NSRSBH,
-                    sum(JE) AS FP_ZZSZYFP_SYQYGS_sum
-                  FROM AA_FPCGL_2014
-                  GROUP BY XF_NSRSBH)
-                 UNION ALL
-                 (SELECT
+           FROM (SELECT
                     XF_NSRSBH,
                     sum(JE) AS FP_ZZSZYFP_SYQYGS_sum
                   FROM ABC_TEMP
-                  GROUP BY XF_NSRSBH)) a, DJ_NSRXX b
+                  GROUP BY XF_NSRSBH) a, DJ_NSRXX b
            WHERE a.XF_NSRSBH = b.NSRSBH GROUP BY NSRDZDAH)
-          p RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) q ON p.NSRDZDAH = q.nsrdzdah
+          p RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) q ON p.NSRDZDAH = q.nsrdzdah
         ''',
     'XFQC_NUM':  # 销方去重个数
         '''
@@ -235,19 +232,14 @@ table_list = {
           (SELECT
              b.NSRDZDAH,
              sum(a.FP_ZZSZYFP_SYQYGS_sum) AS FP_ZZSZYFP_SYQYGS_sum
-           FROM ((SELECT
-                    XF_NSRSBH,
-                    count(DISTINCT (GF_NSRSBH)) AS FP_ZZSZYFP_SYQYGS_sum
-                  FROM AA_FPCGL_2014
-                  GROUP BY XF_NSRSBH)
-                 UNION ALL
-                 (SELECT
+           FROM (SELECT
                     XF_NSRSBH,
                     count(DISTINCT (GF_NSRSBH)) AS FP_ZZSZYFP_SYQYGS_sum
                   FROM ABC_TEMP
-                  GROUP BY XF_NSRSBH)) a, DJ_NSRXX b
+                  GROUP BY XF_NSRSBH
+                ) a, DJ_NSRXX b
            WHERE a.XF_NSRSBH = b.NSRSBH GROUP BY NSRDZDAH)
-          p RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) q ON p.NSRDZDAH = q.nsrdzdah
+          p RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) q ON p.NSRDZDAH = q.nsrdzdah
         ''',
     'NGXZE':  # 年购项总额
         '''
@@ -258,19 +250,13 @@ table_list = {
           (SELECT
              b.NSRDZDAH,
              sum(a.FP_ZZSZYFP_SYQYGS_sum) AS FP_ZZSZYFP_SYQYGS_sum
-           FROM ((SELECT
-                    GF_NSRSBH,
-                    sum(JE) AS FP_ZZSZYFP_SYQYGS_sum
-                  FROM AA_FPCGL_2014
-                  GROUP BY GF_NSRSBH)
-                 UNION ALL
-                 (SELECT
+           FROM (SELECT
                     GF_NSRSBH,
                     sum(JE) AS FP_ZZSZYFP_SYQYGS_sum
                   FROM ABC_TEMP
-                  GROUP BY GF_NSRSBH)) a, DJ_NSRXX b
+                  GROUP BY GF_NSRSBH        ) a, DJ_NSRXX b
            WHERE a.GF_NSRSBH = b.NSRSBH GROUP BY NSRDZDAH)
-          p RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) q ON p.NSRDZDAH = q.nsrdzdah
+          p RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) q ON p.NSRDZDAH = q.nsrdzdah
         ''',
     'GFQC_NUM':  # 购方去重数量
         '''
@@ -281,19 +267,13 @@ table_list = {
           (SELECT
              b.NSRDZDAH,
              sum(a.FP_ZZSZYFP_SYQYGS_sum) AS FP_ZZSZYFP_SYQYGS_sum
-           FROM ((SELECT
-                    GF_NSRSBH,
-                    count(DISTINCT (XF_NSRSBH)) AS FP_ZZSZYFP_SYQYGS_sum
-                  FROM AA_FPCGL_2014
-                  GROUP BY GF_NSRSBH)
-                 UNION ALL
-                 (SELECT
+           FROM (SELECT
                     GF_NSRSBH,
                     count(DISTINCT (XF_NSRSBH)) AS FP_ZZSZYFP_SYQYGS_sum
                   FROM ABC_TEMP
-                  GROUP BY GF_NSRSBH)) a, DJ_NSRXX b
+                  GROUP BY GF_NSRSBH) a, DJ_NSRXX b
            WHERE a.GF_NSRSBH = b.NSRSBH GROUP BY NSRDZDAH)
-          p RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) q ON p.NSRDZDAH = q.nsrdzdah
+          p RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) q ON p.NSRDZDAH = q.nsrdzdah
         ''',
     'SF_RATIO_AVG':  # 年度月份  税负平均变动率
         '''
@@ -358,7 +338,7 @@ table_list = {
             ))
           GROUP BY NSRDZDAH
           ) p
-        RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) q
+        RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) q
         ON p.NSRDZDAH = q.nsrdzdah
         ''',
     'SF_AVG':  # 平均税负率
@@ -387,7 +367,7 @@ table_list = {
                 having sum(ynse)>0 and sum(HWLW_XSE+GDZC_XSE)>0
                 ))
                 GROUP BY NSRDZDAH)
-             p RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) q ON p.NSRDZDAH = q.nsrdzdah
+             p RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) q ON p.NSRDZDAH = q.nsrdzdah
         ''',
     'SJDKSE_RATIO_AVG':  # 年度月份实际 抵扣税额平均变动率
         '''
@@ -417,7 +397,7 @@ table_list = {
                  GROUP BY NSRDZDAH, TO_CHAR(SSSQ_Q, 'YYYYMM')) b
               WHERE a.NSRDZDAH = b.NSRDZDAH AND a.rq = b.rq AND a.sum_sjdkse > 0 AND b.sum_sjdkse > 0)
            GROUP BY NSRDZDAH)
-          p RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) q ON p.NSRDZDAH = q.nsrdzdah
+          p RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) q ON p.NSRDZDAH = q.nsrdzdah
         ''',
     # 税负率=当期应纳增值税/当期应税销售收入
     # 当期应纳增值税=当期销项税额-实际抵扣进项税额
@@ -476,7 +456,7 @@ table_list = {
               )
             )
           GROUP BY NSRDZDAH) p
-        RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) q
+        RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) q
         ON p.NSRDZDAH = q.nsrdzdah
         ''',
     'XFJSHJ_MEAN':  # 年度月份销方价税合计 平均
@@ -495,7 +475,7 @@ table_list = {
                  GROUP BY XF_NSRSBH, TO_CHAR(KPRQ, 'YYYYMM')) a, DJ_NSRXX b
            WHERE a.XF_NSRSBH = b.NSRSBH
            GROUP BY b.NSRDZDAH)
-          p RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) q ON p.NSRDZDAH = q.nsrdzdah
+          p RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) q ON p.NSRDZDAH = q.nsrdzdah
         ''',
     'XFJSHJ_MEDIAN':  # 年度月份销方价税合计 中位数
         '''
@@ -513,7 +493,7 @@ table_list = {
                  GROUP BY XF_NSRSBH, TO_CHAR(KPRQ, 'YYYYMM')) a, DJ_NSRXX b
            WHERE a.XF_NSRSBH = b.NSRSBH
            GROUP BY b.NSRDZDAH)
-          p RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) q ON p.NSRDZDAH = q.nsrdzdah
+          p RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) q ON p.NSRDZDAH = q.nsrdzdah
         ''',
     'IS_JC':  # 是否被稽查
         '''
@@ -526,7 +506,7 @@ table_list = {
             WHERE
                 EXTRACT (YEAR FROM jc.LRRQ) < 2015
             GROUP BY
-                NSRDZDAH) a  RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) b ON a.NSRDZDAH = b.nsrdzdah
+                NSRDZDAH) a  RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) b ON a.NSRDZDAH = b.nsrdzdah
         ''',
     'AJLY':  # 案件来源类型
         '''
@@ -536,14 +516,14 @@ table_list = {
           (SELECT JC.NSRDZDAH,
             MAX (JC.AJLY_DM) AS AJLY
           FROM JC_AJXX JC
-          WHERE EXTRACT (YEAR FROM jc.LRRQ) < 2015
+          WHERE EXTRACT (YEAR FROM jc.LRRQ) < 2016
           GROUP BY NSRDZDAH
           ) a
-        RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) b
+        RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) b
         ON a.NSRDZDAH = b.nsrdzdah       
        ''',
 
-    'SSFYL':  # 销售费用率
+    'XSFYL':  # 销售费用率
         '''
         SELECT
           q.nsrdzdah,
@@ -554,12 +534,12 @@ table_list = {
               NSRDZDAH,
               (XSFY+GLFY+CWFY)/YYCB as SSFYL
              FROM SB_NDSDS_2014 a 
-             where EXTRACT (YEAR FROM sssq_q) <2015 and EXTRACT(YEAR FROM sssq_z) >2013
+             where EXTRACT (YEAR FROM sssq_q) <2016 and EXTRACT(YEAR FROM sssq_z) >2014
              and YYCB>0 
              )
              group by NSRDZDAH
              )
-          p RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) q ON p.NSRDZDAH = q.nsrdzdah
+          p RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) q ON p.NSRDZDAH = q.nsrdzdah
         ''',
     'LRL':  # 利润率
         '''
@@ -572,33 +552,11 @@ table_list = {
               NSRDZDAH,
               LRZE/YYCB as LRL
              FROM SB_NDSDS_2014 a 
-             where EXTRACT (YEAR FROM sssq_q) <2015 and EXTRACT(YEAR FROM sssq_z) >2013
+             where EXTRACT (YEAR FROM sssq_q) <2016 and EXTRACT(YEAR FROM sssq_z) >2014
              and YYCB>0 
              )
              group by NSRDZDAH
              )
-          p RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) q ON p.NSRDZDAH = q.nsrdzdah
-        ''',
-    'XYFZ':  # 信用分值,用于ltr中相关性的评价
+          p RIGHT JOIN (SELECT  NSRDZDAH FROM LG_DATA14_15 WHERE YEARS=2015 union select nsrdzdah from LG_TGNVertex) q ON p.NSRDZDAH = q.nsrdzdah
         '''
-        SELECT
-          b.nsrdzdah,
-          (case when q.fz < 0 then 0 else TO_NUMBER(q.fz) end) AS FZ
-        FROM
-        XY_NSR_XYJB q RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) b ON q.NSRDZDAH = b.nsrdzdah 
-        ''',
-    'WTBZ': # 企业标签
-        '''
-        SELECT b.nsrdzdah,(case when a.WTBZ = 'Y' then 1 else 0 end) as WTBZ from
-            (SELECT
-                    JC.NSRDZDAH,
-                    MAX (JC.WTBZ) AS WTBZ
-                FROM
-                    JC_AJXX JC
-                WHERE
-                    EXTRACT (YEAR FROM jc.LRRQ) >= 2015
-                GROUP BY
-                    NSRDZDAH) a  RIGHT JOIN (SELECT NSRDZDAH FROM XY_NSR_XYJB UNION SELECT NSRDZDAH FROM lg_tgnvertex) b ON a.NSRDZDAH = b.nsrdzdah
-        '''
-
 }

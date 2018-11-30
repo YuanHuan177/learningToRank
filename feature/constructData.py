@@ -10,19 +10,21 @@ import cx_Oracle
 import pandas as pd
 import pandas.io.sql as psql
 
-from AllSql import table_list
+from AllSql_2014 import table_list_2014
+from AllSql_2015 import table_list_2015
+from AllSql_all import table_list_all
 
 conn = cx_Oracle.connect('tax/taxgm2016@192.168.16.186:1521/tax')
 print(conn.version)
 
-all_table_prefix = "all_"
+all_table_prefix = "2015_"
 
 
 # 数据获取
 def get_feature(key, conn):
     lowKey = key.lower()
     # 全局变量table_list是dict,   key是当前key
-    sentence = table_list[key]
+    sentence = table_list_2015[key]
     for fname in [all_table_prefix]:
         sqlline = sentence
         starttime = time.time()
@@ -52,13 +54,13 @@ def mergeData(tableKeys):
             df = pd.merge(df, df_, on="nsrdzdah", how="left")
         i += 1
         print(df.shape)
-    df.to_pickle(r"../data/allData.pickle")
+    df.to_pickle(r"../data/"+str(all_table_prefix)+"Data.pickle")
 
 
 if __name__ == "__main__":
     conn = cx_Oracle.Connection('tax/taxgm2016@192.168.16.186:1521/tax')
     # 获取特征
-    tableKeys = list(table_list.keys())
+    tableKeys = list(table_list_2015.keys())
     for key in tableKeys:
         get_feature(key, conn)
     conn.close()
