@@ -2,7 +2,8 @@
 #  -*- coding: utf-8 -*-
 #  @Time : 2018/11/18 11:15
 #  @Author : lg
-#  @File : cleanData2.py
+#  @File : cleanData3.py
+#  清洗方式：不进行卡方
 
 import time
 
@@ -23,9 +24,9 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.externals import joblib
 
 # 1.数据预处理并进行指标统计
-Data_2014 = pd.read_pickle(r"../data/2014_Data.pickle")  # 训练集  5911
-Data_2015 = pd.read_pickle(r"../data/2015_Data.pickle")  # 测试集  3086
-Data_all = pd.read_pickle(r"../data/all_Data.pickle")  # 给这些企业得分数  513657
+Data_2014 = pd.read_pickle(r"../data2/2014_Data.pickle")  # 训练集  5911
+Data_2015 = pd.read_pickle(r"../data2/2015_Data.pickle")  # 测试集  3086
+Data_all = pd.read_pickle(r"../data2/all_Data.pickle")  # 给这些企业得分数  513657
 
 allDataDf = pd.concat([Data_2014[column_order_2014].drop(['WTBZ'], axis=1), Data_all[column_order_all]])
 print allDataDf.shape
@@ -37,8 +38,8 @@ lossData = pd.DataFrame((dataDf.shape[0] - dataDf.count()) / dataDf.shape[0])
 dataDesc = pd.DataFrame(dataDf.describe())
 print lossData
 print dataDesc
-# dataDesc.to_csv(r"../data/dataDesc.csv", index=False, encoding="utf-8-sig")
-# lossData.to_csv(r"../data/lossData.csv", index=False, encoding="utf-8-sig")
+# dataDesc.to_csv(r"../data2/dataDesc.csv", index=False, encoding="utf-8-sig")
+# lossData.to_csv(r"../data2/lossData.csv", index=False, encoding="utf-8-sig")
 
 
 # 2.训练数据 定性指标哑编码 one-hot
@@ -83,6 +84,6 @@ print reformat_2014.axes  # 5911*650
 print reformat_all.axes  # 513657*649
 print reformat_2015.axes  # 3086*650
 
-joblib.dump(reformat_2014, r"../data/reformat_2014.jl")  # 4 只做定性 编码，定量数据补全  # 5. 在4基础上，用0补全
-joblib.dump(reformat_all, r"../data/reformat_all.jl")
-joblib.dump(reformat_2015, r"../data/reformat_2015.jl")
+joblib.dump(reformat_2014, r"../data2/reformat_2014.jl")  # 4 只做定性 编码，定量数据补全  # 5. 在4基础上，用0补全
+joblib.dump(reformat_all, r"../data2/reformat_all.jl")
+joblib.dump(reformat_2015, r"../data2/reformat_2015.jl")

@@ -13,7 +13,7 @@ import pandas.io.sql as psql
 
 from AllSql_2014 import table_list_2014, column_order_2014
 from AllSql_2015 import table_list_2015, column_order_2015
-from AllSql_all import table_list_all, column_order_all
+from AllSql_2015 import table_list_all, column_order_all
 
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.feature_selection import SelectKBest

@@ -8,18 +8,19 @@ import pandas as pd
 cost = np.array([[0, 0], [0, 0]])
 # 定义所有的评价指标
 from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_score, roc_auc_score, brier_score_loss, \
-    precision_recall_curve, roc_curve, average_precision_score
+    precision_recall_curve, roc_curve, average_precision_score,mean_absolute_error
 
-
-def evalu(y_test, y_pre):
+def evalu(y_test, y_pre): #y_test 真实标签  y_pre 预测标签
     # 第1个指标是每个cost矩阵对应的cost
     my_matrix = confusion_matrix(y_test, y_pre)
     print("confusion= \n", my_matrix)
     print('auc = ', roc_auc_score(y_test, y_pre))
     print('precision = ', precision_score(y_test, y_pre))
-    print('recall', recall_score(y_test, y_pre, average=None))
-    print('f1', f1_score(y_test, y_pre))
-    # print(classification_report(y_test, y_pre))
+    print('recall = ', recall_score(y_test, y_pre, average=None))
+    print('f1 = ', f1_score(y_test, y_pre))
+    fpr, tpr, thresholds = roc_curve(y_test, y_pre)
+    print ('KS = ', max(tpr - fpr))
+    print('MAE(BS) = ',mean_absolute_error(y_test,y_pre))  # 平均绝对误差
     # 第一个指标是精确度
     # 第二个指标是G-mean
     recall_list = recall_score(y_test, y_pre, average=None)
