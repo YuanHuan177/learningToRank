@@ -2,13 +2,16 @@
 #  -*- coding: utf-8 -*-
 #  @Time : 2018/11/16 14:44
 #  @Author : lg
-#  @File : AllSql_2014.py
+#  @File : AllSql_2014.py   7194
+#  √
 
 # -*- coding: utf8 -*-
-column_order_2014 = ['nsrdzdah', 'ZCDZ_YB', 'LSGX', 'HY', 'DJZCLX', 'KY_MONTH', 'NSRZT', 'NSRLX', 'ZCDNSR_NUM', 'ZRR_NUM',
-                'FDDBR_AGE', 'FDDBR_JG', 'CWFZR_AGE', 'CWFZR_REGION', 'BSR_AGE', 'BSR_REGION', 'CYRS', 'TZZE', 'ZCZB',
-                'NXXZE', 'XFQC_NUM', 'NGXZE', 'GFQC_NUM', 'SF_RATIO_AVG', 'SF_AVG', 'SJDKSE_RATIO_AVG',
-                'YNSE_RATIO_AVG', 'XFJSHJ_MEAN', 'XFJSHJ_MEDIAN', 'IS_JC', 'AJLY', 'XSFYL', 'LRL', 'WTBZ']
+column_order_2014 = ['nsrdzdah', 'ZCDZ_YB', 'LSGX', 'HY', 'DJZCLX', 'KY_MONTH', 'NSRZT', 'NSRLX', 'ZCDNSR_NUM',
+                     'ZRR_NUM',
+                     'FDDBR_AGE', 'FDDBR_JG', 'CWFZR_AGE', 'CWFZR_REGION', 'BSR_AGE', 'BSR_REGION', 'CYRS', 'TZZE',
+                     'ZCZB',
+                     'NXXZE', 'XFQC_NUM', 'NGXZE', 'GFQC_NUM', 'SF_RATIO_AVG', 'SF_AVG', 'SJDKSE_RATIO_AVG',
+                     'YNSE_RATIO_AVG', 'XFJSHJ_MEAN', 'XFJSHJ_MEDIAN', 'IS_JC', 'AJLY', 'XSFYL', 'LRL', 'WTBZ']
 
 table_list_2014 = {
     'ZCDZ_YB':  # 注册地址邮编
@@ -563,5 +566,39 @@ table_list_2014 = {
         '''
         SELECT nsrdzdah,(case when WTBZ = 'Y' then 1 else 0 end) as WTBZ from lg_data14_15_BIG WHERE YEARS=2014
         '''
+  #   , 'XYFZ':
+  #       '''
+  #    SELECT a.nsrdzdah,
+  #   CASE
+  #     WHEN a.fz IS NULL
+  #     THEN
+  #       CASE
+  #         WHEN b.WTBZ = 1
+  #         THEN 90
+  #         ELSE 10
+  #       END
+  #     ELSE a.fz
+  #   END AS xyfz
+  # FROM
+  #   (SELECT q.nsrdzdah,
+  #     (100-p.fz)as fz
+  #   FROM xy_nsr_xyjb p
+  #   RIGHT JOIN
+  #     (SELECT NSRDZDAH FROM lg_data14_15_BIG WHERE YEARS=2014
+  #     ) q
+  #   ON p.NSRDZDAH = q.nsrdzdah
+  #       )a,
+  #   (SELECT nsrdzdah,
+  #     (
+  #     CASE
+  #       WHEN WTBZ = 'Y'
+  #       THEN 1
+  #       ELSE 0
+  #     END) AS WTBZ
+  #   FROM lg_data14_15_BIG
+  #   WHERE YEARS=2014
+  #   )b
+  # WHERE a.nsrdzdah= b.nsrdzdah
+  #   '''
 
 }

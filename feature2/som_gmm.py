@@ -138,7 +138,7 @@ pd.DataFrame(allcount).to_csv('../data2/allcount_after.csv')
 pd.DataFrame(err).to_csv('../data2/error_after1.csv')
 pd.DataFrame(dism).to_csv('../data2/dism_after.csv')
 
-'''
+
 km = KMeans(init=incores, n_clusters=k, n_init=1)
 #km = GaussianMixture(n_components=k,means_init=incores)
 km.fit(X)
@@ -155,10 +155,6 @@ def activation_response(data):
     for x in data:
         a[winner(x)] += 1
     return a
-
-
-
-
 
 
 t = X[Y == 1, :]
@@ -179,4 +175,3 @@ joblib.dump(clean_reformat_2014, '../data2/clean_reformat_2014.jl')
 # e=pd.DataFrame(err)
 # e.fillna(0,inplace=True)
 # e.to_csv('../data2/error_before1.csv')
-'''

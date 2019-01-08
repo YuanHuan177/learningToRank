@@ -3,7 +3,7 @@
 #  @Time : 2018/11/18 11:15
 #  @Author : lg
 #  @File : cleanData3.py
-#  清洗方式：不进行卡方
+#  清洗方式：不进行卡方,同时用0补全
 
 import time
 
@@ -58,7 +58,7 @@ print DingXingIndex['BSR_REGION'].value_counts().shape
 print DingXingIndex['IS_JC'].value_counts().shape
 print DingXingIndex['AJLY'].value_counts().shape
 print '定性指标类别数： ' + str(DingXingIndex.describe())
-DingXingIndex.fillna(0, inplace=True)  # 用众数在原位置处补全数据
+DingXingIndex.fillna(0, inplace=True)  # 用0在原位置处补全数据
 # print XingIndex.columns[np.where(np.isfinite(XingIndex))[0]]  # 判断数据中无穷大在什么位置
 
 oneHotXingIndex = OneHotEncoder().fit_transform(DingXingIndex)  # 进行one-hot 编码
@@ -69,7 +69,7 @@ mutualIndexXing = oneHotXingIndex
 DingLiangIndex = dataDf.drop(
     ['ZCDZ_YB', 'HY', 'DJZCLX', 'NSRZT', 'NSRLX', 'FDDBR_JG', 'CWFZR_REGION', 'BSR_REGION', 'IS_JC', 'AJLY'],
     axis=1)
-DingLiangIndex.fillna(0, inplace=True)  # 用平均值补全
+DingLiangIndex.fillna(0, inplace=True)  # 用0补全
 StandardIndex = StandardScaler().fit_transform(DingLiangIndex)  # 正态分布标准化
 mutualIndexLiang = StandardIndex
 

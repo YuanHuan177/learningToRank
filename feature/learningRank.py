@@ -85,6 +85,25 @@ for model in models:
 
 ################# 集成学习
 
+# models=[MLPClassifier(),DecisionTreeClassifier(max_depth=18, max_features='sqrt'),RandomForestClassifier(n_estimators=145,
+#                                max_depth=18,
+#                                min_samples_split=4,
+#                                max_features=None, n_jobs=10, random_state=5 + 29),]
+# eclf = VotingClassifier(estimators=[('mlp', models[0]), ('dt', models[1]), ('rf', models[2])], voting='hard')  # 无权重投票
+# eclf.fit(train[vars], train['wtbz'])
+# t='my'
+# test[t + 'DefaultPred'] = eclf.predict(test[vars])
+# f1, precision, recall = bestF1(test.wtbz, test[t + 'DefaultPred'])
+# result = {'AUC': roc_auc_score(test.wtbz, test[t + 'DefaultPred']), 'F1': f1, 'PRECISION': precision,
+#           'RECALL': recall}
+# print t + " PRECISION:  " + str(np.round(result['PRECISION'], 5))
+# print t + " RECALL:  " + str(np.round(result['RECALL'], 5))
+# print t + " AUC: " + str(np.round(result['AUC'], 5))
+# print t + " F1:  " + str(np.round(result['F1'], 5)) + '\n'
+
+
+
+
 
 # eclf = VotingClassifier(estimators=[('mlp', models[0]), ('dt', models[1]), ('rf', models[2])], voting='hard')  # 无权重投票
 # for clf, label in zip([models[0], models[1], models[2], eclf], ['mlp', 'dt', 'rf', 'Ensemble']):

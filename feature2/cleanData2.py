@@ -4,6 +4,7 @@
 #  @Author : lg
 #  @File : cleanData2.py
 #   清洗方式：进行kafa检验，互信息
+#   √
 
 import time
 
@@ -24,9 +25,9 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.externals import joblib
 
 # 1.数据预处理并进行指标统计
-Data_2014 = pd.read_pickle(r"../data2/2014_Data.pickle") # 训练集  5911
-Data_2015 = pd.read_pickle(r"../data2/2015_Data.pickle")  # 测试集  3086
-Data_all = pd.read_pickle(r"../data2/all_Data.pickle")  # 给这些企业得分数  513657
+Data_2014 = pd.read_pickle(r"../data2/2014_Data.pickle") # 训练集  7194
+Data_2015 = pd.read_pickle(r"../data2/2015_Data.pickle")  # 测试集  6663
+Data_all = pd.read_pickle(r"../data2/all_Data.pickle")  # 给这些企业得分数  513180
 
 
 

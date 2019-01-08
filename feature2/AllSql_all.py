@@ -3,6 +3,8 @@
 #  @Time : 2018/11/16 14:44
 #  @Author : lg
 #  @File : AllSql_all.py  为了给分数  当wtbz 为 null 的给其得分
+#  √  513180
+
 
 # -*- coding: utf8 -*-
 column_order_all = ['nsrdzdah', 'ZCDZ_YB', 'LSGX', 'HY', 'DJZCLX', 'KY_MONTH', 'NSRZT', 'NSRLX', 'ZCDNSR_NUM', 'ZRR_NUM',

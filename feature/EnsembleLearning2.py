@@ -3,13 +3,15 @@
 #  @Time : 2018/12/3 11:10
 #  @Author : lg
 #  @File : EnsembleLearning.py
+#   两层集成学习 TLEL方法
 
 import os
 import pandas as pd
 import numpy as np
 from itertools import chain
+
+from imblearn.over_sampling import RandomOverSampler,SMOTE, ADASYN
 from scipy.optimize import minimize
-from sklearn.model_selection import cross_validate, StratifiedKFold, cross_val_score
 from sklearn.model_selection import KFold
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
@@ -20,21 +22,23 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from sklearn.ensemble import VotingClassifier
+
+from imblearn.under_sampling import RandomUnderSampler, ClusterCentroids
 from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score, brier_score_loss, \
     precision_recall_curve, roc_curve, average_precision_score
 
 from sklearn.externals import joblib
 
-#vars = ['f' + str(i) for i in range(648)]
-m,n =joblib.load(r"../data2/clean_reformat_2014.jl").shape
-vars = ['f' + str(i) for i in range(n-2)]
+# vars = ['f' + str(i) for i in range(648)]
+m, n = joblib.load(r"../data/clean_reformat_2014.jl").shape
+vars = ['f' + str(i) for i in range(n - 2)]
+
 
 def loadDat():
     """ Load train + test sets and prep data """
-    train = joblib.load(r"../data2/clean_reformat_2014.jl")  # clean_reformat_2014是经过som-gmm 筛选的，未经过筛选的是 reformat_2014
-    test = joblib.load(r"../data2/reformat_2015.jl")
-    all_data = joblib.load(r"../data2/reformat_all.jl")
+    train = joblib.load(r"../data/clean_reformat_2014.jl")  # clean_reformat_2014是经过som-gmm 筛选的，未经过筛选的是 reformat_2014
+    test = joblib.load(r"../data/reformat_2015.jl")
+    all_data = joblib.load(r"../data/reformat_all.jl")
     train.columns = ['nsrdzdah'] + vars + ['wtbz']
     test.columns = ['nsrdzdah'] + vars + ['wtbz']
     all_data.columns = ['nsrdzdah'] + vars
@@ -70,18 +74,34 @@ def bestF1(truth, pred):
     return bestf1, precision, recall
 
 
+models = {
+    'defaultRF': {'n_estimators': 145, 'max_depth': 18, 'min_samples_split': 4, 'max_features': None},
+    'defaultGBM': {'n_estimators': 65, 'max_depth': 6, 'learning_rate': 0.300, 'max_features': 'sqrt'}
+}
 
 
-def defaultModel(model, vars, t, train, test, seed):
-    """ Make a model for default """
+def runRandomUnderSample(train, test, seed):
+    for i in range(5):
+        X_resampled, y_resampled =ADASYN().fit_sample(train[vars], train.wtbz)
+        print (len(X_resampled))
+        trained = pd.DataFrame(np.concatenate((X_resampled, y_resampled.reshape(-1, 1)), axis=1))
+        trained.columns = vars + ['wtbz']
+        rf1Default = baseModel(
+            GradientBoostingClassifier(n_estimators=models['defaultGBM']['n_estimators'],
+                                       learning_rate=models['defaultGBM']['learning_rate'],
+                                       max_depth=models['defaultGBM']['max_depth'],
+                                       max_features=models['defaultGBM']['max_features'], random_state=seed + 29),
+            vars, "rfbase" + str(i), trained, test, seed)
+    return train, test
+
+
+def baseModel(model, vars, t, train, test, seed):
     kf = KFold(5, shuffle=True, random_state=seed)
     train[t + 'DefaultPred'] = 0.0
     for tr, val in kf.split(train):
         model.fit(train[vars].iloc[train.index[tr]], train['wtbz'].iloc[train.index[tr]])
         train[t + 'DefaultPred'].iloc[train.index[val]] = model.predict_proba(train[vars].iloc[train.index[val]])[:, 1]
-    model.fit(train[vars], train['wtbz'])
-    joblib.dump(model, '../data2/' + str(t) + '.jl')
-
+    # model.fit(train[vars], train['wtbz'])
     test[t + 'DefaultPred'] = model.predict_proba(test[vars])[:, 1]
     f1, precision, recall = bestF1(test.wtbz, test[t + 'DefaultPred'])
     result = {'AUC': roc_auc_score(test.wtbz, test[t + 'DefaultPred']), 'F1': f1, 'PRECISION': precision,
@@ -93,94 +113,56 @@ def defaultModel(model, vars, t, train, test, seed):
     return result
 
 
-models = {
-    'defaultRF': {'n_estimators': 145, 'max_depth': 18, 'min_samples_split': 4, 'max_features': None},
-    'defaultGBM': {'n_estimators': 65, 'max_depth': 6, 'learning_rate': 0.300, 'max_features': 'sqrt'}
-}
-
-
-def runDefaultModels(train, test, seed):
-    """ Run all default models """
-    # RF Model
-    rfDefault = defaultModel(
-        RandomForestClassifier(n_estimators=models['defaultRF']['n_estimators'],
-                               max_depth=models['defaultRF']['max_depth'],
-                               min_samples_split=models['defaultRF']['min_samples_split'],
-                               max_features=models['defaultRF']['max_features'], n_jobs=10, random_state=seed + 29),
-        vars, "rf", train, test, seed)
-    # GBM Model
-    gbmDefault = defaultModel(
-        GradientBoostingClassifier(n_estimators=models['defaultGBM']['n_estimators'],
-                                   learning_rate=models['defaultGBM']['learning_rate'],
-                                   max_depth=models['defaultGBM']['max_depth'],
-                                   max_features=models['defaultGBM']['max_features'], random_state=seed + 29),
-        vars, "gbm", train, test, seed)
-
-    mlpDefault = defaultModel(MLPClassifier(), vars, "mlp", train, test, seed)
-    ldaDefault = defaultModel(LinearDiscriminantAnalysis(), vars, "lda", train, test, seed)
-    lrDefault = defaultModel(LogisticRegression(), vars, "lr", train, test, seed)
-    dtDefault = defaultModel(DecisionTreeClassifier(max_depth=18, max_features='sqrt'), vars, "dt", train, test, seed)
-    nbDefault=defaultModel( BernoulliNB(),vars,"bayes",train,test,seed)
-    svcDefault = defaultModel(SVC(probability=True), vars, "svc", train, test, seed)
-    knnDefault = defaultModel(KNeighborsClassifier(), vars, "knn", train, test, seed)
-    #     train['defaultPred'] = train['lrDefaultPred']
-    #     test['defaultPred'] = test['lrDefaultPred']
-    #     train['defaultPred'] = train['rfDefaultPred']*0.55 + train['gbmDefaultPred']*0.45
-    #     test['defaultPred'] = test['rfDefaultPred']*0.55 + test['gbmDefaultPred']*0.45
-    #     print "blended AUC: " + str(np.round(roc_auc_score(train.wtbz, train['defaultPred']),5))
-    #     print "blended F1:  " + str(np.round(bestF1(train.wtbz,train['defaultPred']),5))
-    #     print "test blended AUC: " + str(np.round(roc_auc_score(test.wtbz, test['defaultPred']),5))
-    #     print "test blended F1:  " + str(np.round(bestF1(test.wtbz,test['defaultPred']),5))
-    return train, test
-
-
 train, test = loadDat()
-
 # make default models
-train, test = runDefaultModels(train, test, 5)
+train, test = runRandomUnderSample(train, test, 5)
 
 # 线性回归获取最佳权值配比
-model = LogisticRegression()
-myvars =  ['rfDefaultPred', 'mlpDefaultPred','gbmDefaultPred']
-#myvars = ['rfDefaultPred', 'gbmDefaultPred']
+myvars = ['rfbase0DefaultPred', 'rfbase1DefaultPred', 'rfbase2DefaultPred', 'rfbase3DefaultPred', 'rfbase4DefaultPred']
+# myvars = ['rfDefaultPred', 'gbmDefaultPred']
 seed = 5
 t = 'ensemble'
-kf = KFold(5, shuffle=True, random_state=seed)
-train[t + 'DefaultPred'] = 0.0
-for tr, val in kf.split(train):
-    model.fit(train[myvars].iloc[train.index[tr]], train['wtbz'].iloc[train.index[tr]])
-    train[t + 'DefaultPred'].iloc[train.index[val]] = model.predict(train[myvars].iloc[train.index[val]])
-model.fit(train[myvars], train['wtbz'])
-joblib.dump(model, '../data2/' + str(t) + '.jl')
-test[t + 'DefaultPred'] = model.predict(test[myvars])
-f1, precision, recall = bestF1(train.wtbz, train[t + 'DefaultPred'])
-result = {'AUC': roc_auc_score(train.wtbz, train[t + 'DefaultPred']), 'F1': f1, 'PRECISION': precision,
+test[t + 'DefaultPred'] = 0.0
+
+
+def vote(param):
+    wtbz1 = 0
+    wtbz0 = 0
+    for v in myvars:
+        if param[v] >= 0.5:
+            wtbz1 =wtbz1+ 1
+        else:
+            wtbz0 =wtbz0+ 1
+    result=1.0 if wtbz1 > wtbz0 else 0.0
+    return result
+
+
+test[t + 'DefaultPred'] = test[myvars].apply(vote,axis=1)
+
+f1, precision, recall = bestF1(test.wtbz, test[t + 'DefaultPred'])
+result = {'AUC': roc_auc_score(test.wtbz, test[t + 'DefaultPred']), 'F1': f1, 'PRECISION': precision,
           'RECALL': recall}
 print t + " PRECISION:  " + str(np.round(result['PRECISION'], 5))
 print t + " RECALL:  " + str(np.round(result['RECALL'], 5))
 print t + " AUC: " + str(np.round(result['AUC'], 5))
 print t + " F1:  " + str(np.round(result['F1'], 5)) + '\n'
 
-
-
 # 输出预测概率分值, 注意  不用 输出上面的评价指标
-# compliance=pd.merge(test[['nsrdzdah','ensembleDefaultPred']],joblib.load(r"../data2/reformat_2015.jl")[['nsrdzdah','WTBZ']],on='nsrdzdah',how='left')
+# compliance=pd.merge(test[['nsrdzdah','ensembleDefaultPred']],joblib.load(r"../data/reformat_2015.jl")[['nsrdzdah','WTBZ']],on='nsrdzdah',how='left')
 # s = (compliance['ensembleDefaultPred'] - compliance['ensembleDefaultPred'].min())/(compliance['ensembleDefaultPred'].max() - compliance['ensembleDefaultPred'].min())
 # newcompliance = compliance.drop(['ensembleDefaultPred'],axis=1) #归一化
 # newcompliance['ensembleDefaultPred'] = s
 # newcompliance.fillna(-1, inplace=True)
 # print len(newcompliance[newcompliance['WTBZ']==1])
 # print len(newcompliance[newcompliance['WTBZ']==0])
-# newcompliance.to_csv(r"../data2/compliance" , encoding='utf-8', index=False)
-
+# newcompliance.to_csv(r"../data/compliance" , encoding='utf-8', index=False)
 
 
 # 画图
 from sklearn.metrics import roc_curve
 
-
-#methods = ['ensemble', 'lda', 'lr', 'dt', 'knn', 'svc','mlp','bayes']
-methods = [ 'lda', 'lr', 'svc','bayes','dt','knn','ensemble']
+# methods = ['ensemble', 'lda', 'lr', 'dt', 'knn', 'svc','mlp','bayes']
+methods = ['lda', 'lr', 'svc', 'bayes', 'dt', 'knn', 'ensemble']
 n = len(methods)
 f = lambda x: '%.4f' % x
 # 对比方法指标
@@ -189,7 +171,7 @@ for i in range(n):
     print test[methods[i] + 'DefaultPred'].apply(f)
 
     cutoff = 0.5
-    #cutoff = test[methods[i] + 'DefaultPred'].median()
+    # cutoff = test[methods[i] + 'DefaultPred'].median()
     f1 = f1_score(test.wtbz, pd.Series(test[methods[i] + 'DefaultPred'] > cutoff).apply(lambda x: 1 if x else 0))
     print '%.3f' % f1
     precision = precision_score(test.wtbz,
@@ -220,18 +202,16 @@ for i in range(n):
     pg = 2 * auc - 1
     print '%.3f' % pg
 
-
 # roc 曲线
 
 for i in range(n):
     fpr, tpr, thresholds = roc_curve(test.wtbz, test[methods[i] + 'DefaultPred'])
     df = pd.DataFrame(np.column_stack((fpr, tpr, thresholds)))
-    df.to_csv('../data2/roc_' + methods[i] + '.csv', index=False)
+    df.to_csv('../data/roc_' + methods[i] + '.csv', index=False)
 # pr 曲线
 from sklearn.metrics import precision_recall_curve
 
 for i in range(n):
     precision, recall, thresholds = precision_recall_curve(test.wtbz, test[methods[i] + 'DefaultPred'])
     df = pd.DataFrame(np.column_stack((precision, recall)))
-    df.to_csv('../data2/pr_' + methods[i] + '.csv')
-
+    df.to_csv('../data/pr_' + methods[i] + '.csv')

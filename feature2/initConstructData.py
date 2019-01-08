@@ -18,14 +18,14 @@ from AllSql_all import table_list_all
 conn = cx_Oracle.connect('tax/taxgm2016@192.168.16.186:1521/tax')
 print(conn.version)
 
-all_table_prefix = "all_"
+all_table_prefix = "2014_"
 
 
 # 数据获取
 def get_feature(key, conn):
     lowKey = key.lower()
     # 全局变量table_list是dict,   key是当前key
-    sentence = table_list_all[key]
+    sentence = table_list_2014_big[key]
     for fname in [all_table_prefix]:
         sqlline = sentence
         starttime = time.time()
@@ -61,7 +61,7 @@ def mergeData(tableKeys):
 if __name__ == "__main__":
     conn = cx_Oracle.Connection('tax/taxgm2016@192.168.16.186:1521/tax')
     # 获取特征
-    tableKeys = list(table_list_all.keys())
+    tableKeys = list(table_list_2014_big.keys())
     for key in tableKeys:
         get_feature(key, conn)
     conn.close()

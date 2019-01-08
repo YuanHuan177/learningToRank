@@ -3,6 +3,8 @@
 #  @Time : 2018/11/16 14:44
 #  @Author : lg
 #  @File : AllSql_2015.py
+#  √   6663
+
 
 # -*- coding: utf8 -*-
 column_order_2015 = ['nsrdzdah', 'ZCDZ_YB', 'LSGX', 'HY', 'DJZCLX', 'KY_MONTH', 'NSRZT', 'NSRLX', 'ZCDNSR_NUM', 'ZRR_NUM',
