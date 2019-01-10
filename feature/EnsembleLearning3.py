@@ -7,6 +7,8 @@
 
 import operator
 import os
+import time
+
 import pandas as pd
 import numpy as np
 from itertools import chain
@@ -28,12 +30,14 @@ from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_sco
 
 from sklearn.externals import joblib
 
+start = time.time()
 # vars = ['f' + str(i) for i in range(648)]
 m, n = joblib.load(r"../data/clean_reformat_2014.jl").shape
 vars = ['f' + str(i) for i in range(n - 2)]
 # myvars = ['rfDefaultPred', 'gbmDefaultPred', 'mlpDefaultPred', 'wtbz']
-myvars = ['rfDefaultPred', 'gbmDefaultPred', 'mlpDefaultPred', 'ldaDefault', 'lrDefault', 'dtDefault', 'nbDefault',
-          'svcDefault', 'knnDefault', 'wtbz']
+myvars = ['rfDefaultPred', 'gbmDefaultPred', 'mlpDefaultPred', 'ldaDefaultPred', 'lrDefaultPred', 'dtDefaultPred',
+          'nbDefaultPred',
+          'svcDefaultPred', 'knnDefaultPred', 'wtbz']
 
 
 def loadDat():
@@ -122,12 +126,13 @@ def runDefaultModels(train, test, seed):
         vars, "gbm", train, test, seed)
 
     mlpDefault, mlpModel = defaultModel(MLPClassifier(), vars, "mlp", train, test, seed)
-    ldaDefault = defaultModel(LinearDiscriminantAnalysis(), vars, "lda", train, test, seed)
-    lrDefault = defaultModel(LogisticRegression(), vars, "lr", train, test, seed)
-    dtDefault = defaultModel(DecisionTreeClassifier(max_depth=18, max_features='sqrt'), vars, "dt", train, test, seed)
-    nbDefault = defaultModel(BernoulliNB(), vars, "bayes", train, test, seed)
-    svcDefault = defaultModel(SVC(probability=True), vars, "svc", train, test, seed)
-    knnDefault = defaultModel(KNeighborsClassifier(), vars, "knn", train, test, seed)
+    ldaDefault, ldaModel = defaultModel(LinearDiscriminantAnalysis(), vars, "lda", train, test, seed)
+    lrDefault, lrModel = defaultModel(LogisticRegression(), vars, "lr", train, test, seed)
+    dtDefault, dtModel = defaultModel(DecisionTreeClassifier(max_depth=18, max_features='sqrt'), vars, "dt", train,
+                                      test, seed)
+    nbDefault, nbModel = defaultModel(BernoulliNB(), vars, "nb", train, test, seed)
+    svcDefault, svcModel = defaultModel(SVC(probability=True), vars, "svc", train, test, seed)
+    knnDefault, knnModel = defaultModel(KNeighborsClassifier(), vars, "knn", train, test, seed)
     #     train['defaultPred'] = train['lrDefaultPred']
     #     test['defaultPred'] = test['lrDefaultPred']
     #     train['defaultPred'] = train['rfDefaultPred']*0.55 + train['gbmDefaultPred']*0.45
@@ -140,7 +145,7 @@ def runDefaultModels(train, test, seed):
                    myvars[3]: mlpDefault.get('F1'), myvars[4]: mlpDefault.get('F1'), myvars[5]: mlpDefault.get('F1'),
                    myvars[6]: mlpDefault.get('F1'), myvars[7]: mlpDefault.get('F1'), myvars[8]: mlpDefault.get('F1')}
     f1Judge = pd.DataFrame(sorted(f1Judgedict.items(), key=operator.itemgetter(1), reverse=True))[0]
-    allmodel = dict([rfModel, gbmModel, mlpModel, ldaDefault, lrDefault, dtDefault, nbDefault, svcDefault, knnDefault])
+    allmodel = dict([rfModel, gbmModel, mlpModel, ldaModel, lrModel, dtModel, nbModel, svcModel, knnModel])
 
     return train, test, f1Judge, allmodel
 
@@ -166,10 +171,11 @@ test[s + 'wtbz'] = model.predict(test[myvars])
 
 # 输出训练后集成方法的指标结果
 t = 'ensemble'
+joblib.dump(model, '../data/' + str(t) + '.jl')
 
 
 def pred(x):
-    # return joblib.load(r"../data/" + str(x[s + 'wtbz'])[:-11] + ".jl").predict(x[vars].reshape(1, -1))
+    #return joblib.load(r"../data/" + str(x[s + 'wtbz'])[:-11] + ".jl").predict(x[vars].reshape(1, -1))  速度慢
     return allmodel.get(x[s + 'wtbz']).predict(x[vars].reshape(1, -1))
 
 
@@ -184,13 +190,14 @@ print t + " AUC: " + str(np.round(result['AUC'], 5))
 print t + " F1:  " + str(np.round(result['F1'], 5)) + '\n'
 
 test[t + 'DefaultPred'] = pd.concat([test[vars], test[s + 'wtbz']], axis=1).apply(pred, axis=1)[s + 'wtbz']
-result = {'AUC': roc_auc_score(test.wtbz, test[t + 'DefaultPred']), 'F1': f1, 'PRECISION': precision,
+result2 = {'AUC': roc_auc_score(test.wtbz, test[t + 'DefaultPred']), 'F1': f1, 'PRECISION': precision,
           'RECALL': recall}
-print t + " PRECISION:  " + str(np.round(result['PRECISION'], 5))
-print t + " RECALL:  " + str(np.round(result['RECALL'], 5))
-print t + " AUC: " + str(np.round(result['AUC'], 5))
-print t + " F1:  " + str(np.round(result['F1'], 5)) + '\n'
-
+print t + " PRECISION:  " + str(np.round(result2['PRECISION'], 5))
+print t + " RECALL:  " + str(np.round(result2['RECALL'], 5))
+print t + " AUC: " + str(np.round(result2['AUC'], 5))
+print t + " F1:  " + str(np.round(result2['F1'], 5)) + '\n'
+end = time.time()
+print 'time: %s' % (end - start)
 # 输出预测概率分值, 注意  不用 输出上面的评价指标
 # compliance=pd.merge(test[['nsrdzdah','ensembleDefaultPred']],joblib.load(r"../data/reformat_2015.jl")[['nsrdzdah','WTBZ']],on='nsrdzdah',how='left')
 # s = (compliance['ensembleDefaultPred'] - compliance['ensembleDefaultPred'].min())/(compliance['ensembleDefaultPred'].max() - compliance['ensembleDefaultPred'].min())
@@ -205,14 +212,13 @@ print t + " F1:  " + str(np.round(result['F1'], 5)) + '\n'
 # 画图
 from sklearn.metrics import roc_curve
 
-# methods = ['ensemble', 'lda', 'lr', 'dt', 'knn', 'svc','mlp','bayes']
-methods = ['lda', 'lr', 'svc', 'bayes', 'dt', 'knn', 'ensemble']
+# methods = ['ensemble', 'lda', 'lr', 'dt', 'knn', 'svc','mlp','nb']
+methods = ['lda', 'lr', 'svc', 'nb', 'dt', 'knn', 'ensemble']
 n = len(methods)
-f = lambda x: '%.4f' % x
 # 对比方法指标
 for i in range(n):
     print '========' + str(methods[i])
-    print test[methods[i] + 'DefaultPred'].apply(f)
+    # print test[methods[i] + 'DefaultPred'].apply(lambda x: '%.4f' % x)
 
     cutoff = 0.5
     # cutoff = test[methods[i] + 'DefaultPred'].median()
