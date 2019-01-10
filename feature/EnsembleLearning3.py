@@ -29,7 +29,7 @@ from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_sco
 from sklearn.externals import joblib
 
 # vars = ['f' + str(i) for i in range(648)]
-m, n = joblib.load(r"../data2/clean_reformat_2014.jl").shape
+m, n = joblib.load(r"../data/clean_reformat_2014.jl").shape
 vars = ['f' + str(i) for i in range(n - 2)]
 # myvars = ['rfDefaultPred', 'gbmDefaultPred', 'mlpDefaultPred', 'wtbz']
 myvars = ['rfDefaultPred', 'gbmDefaultPred', 'mlpDefaultPred', 'ldaDefault', 'lrDefault', 'dtDefault', 'nbDefault',
@@ -38,9 +38,9 @@ myvars = ['rfDefaultPred', 'gbmDefaultPred', 'mlpDefaultPred', 'ldaDefault', 'lr
 
 def loadDat():
     """ Load train + test sets and prep data """
-    train = joblib.load(r"../data2/clean_reformat_2014.jl")  # clean_reformat_2014是经过som-gmm 筛选的，未经过筛选的是 reformat_2014
-    test = joblib.load(r"../data2/reformat_2015.jl")
-    all_data = joblib.load(r"../data2/reformat_all.jl")
+    train = joblib.load(r"../data/clean_reformat_2014.jl")  # clean_reformat_2014是经过som-gmm 筛选的，未经过筛选的是 reformat_2014
+    test = joblib.load(r"../data/reformat_2015.jl")
+    all_data = joblib.load(r"../data/reformat_all.jl")
     train.columns = ['nsrdzdah'] + vars + ['wtbz']
     test.columns = ['nsrdzdah'] + vars + ['wtbz']
     all_data.columns = ['nsrdzdah'] + vars
@@ -84,7 +84,7 @@ def defaultModel(model, vars, t, train, test, seed):
         model.fit(train[vars].iloc[train.index[tr]], train['wtbz'].iloc[train.index[tr]])
         train[t + 'DefaultPred'].iloc[train.index[val]] = model.predict_proba(train[vars].iloc[train.index[val]])[:, 1]
     model.fit(train[vars], train['wtbz'])
-    joblib.dump(model, '../data2/' + str(t) + '.jl')
+    joblib.dump(model, '../data/' + str(t) + '.jl')
 
     test[t + 'DefaultPred'] = model.predict_proba(test[vars])[:, 1]
     f1, precision, recall = bestF1(test.wtbz, test[t + 'DefaultPred'])
@@ -169,12 +169,12 @@ t = 'ensemble'
 
 
 def pred(x):
-    # return joblib.load(r"../data2/" + str(x[s + 'wtbz'])[:-11] + ".jl").predict(x[vars].reshape(1, -1))
+    # return joblib.load(r"../data/" + str(x[s + 'wtbz'])[:-11] + ".jl").predict(x[vars].reshape(1, -1))
     return allmodel.get(x[s + 'wtbz']).predict(x[vars].reshape(1, -1))
 
 
 train[t + 'DefaultPred'] = pd.concat([train[vars], train[s + 'wtbz']], axis=1).apply(pred, axis=1)[s + 'wtbz']
-# joblib.dump(model, '../data2/' + str(t) + '.jl')
+# joblib.dump(model, '../data/' + str(t) + '.jl')
 f1, precision, recall = bestF1(train.wtbz, train[t + 'DefaultPred'])
 result = {'AUC': roc_auc_score(train.wtbz, train[t + 'DefaultPred']), 'F1': f1, 'PRECISION': precision,
           'RECALL': recall}
@@ -192,14 +192,14 @@ print t + " AUC: " + str(np.round(result['AUC'], 5))
 print t + " F1:  " + str(np.round(result['F1'], 5)) + '\n'
 
 # 输出预测概率分值, 注意  不用 输出上面的评价指标
-# compliance=pd.merge(test[['nsrdzdah','ensembleDefaultPred']],joblib.load(r"../data2/reformat_2015.jl")[['nsrdzdah','WTBZ']],on='nsrdzdah',how='left')
+# compliance=pd.merge(test[['nsrdzdah','ensembleDefaultPred']],joblib.load(r"../data/reformat_2015.jl")[['nsrdzdah','WTBZ']],on='nsrdzdah',how='left')
 # s = (compliance['ensembleDefaultPred'] - compliance['ensembleDefaultPred'].min())/(compliance['ensembleDefaultPred'].max() - compliance['ensembleDefaultPred'].min())
 # newcompliance = compliance.drop(['ensembleDefaultPred'],axis=1) #归一化
 # newcompliance['ensembleDefaultPred'] = s
 # newcompliance.fillna(-1, inplace=True)
 # print len(newcompliance[newcompliance['WTBZ']==1])
 # print len(newcompliance[newcompliance['WTBZ']==0])
-# newcompliance.to_csv(r"../data2/compliance" , encoding='utf-8', index=False)
+# newcompliance.to_csv(r"../data/compliance" , encoding='utf-8', index=False)
 
 
 # 画图
@@ -250,10 +250,10 @@ for i in range(n):
 for i in range(n):
     fpr, tpr, thresholds = roc_curve(test.wtbz, test[methods[i] + 'DefaultPred'])
     df = pd.DataFrame(np.column_stack((fpr, tpr, thresholds)))
-    df.to_csv('../data2/roc_' + methods[i] + '.csv', index=False)
+    df.to_csv('../data/roc_' + methods[i] + '.csv', index=False)
 
 # pr 曲线
 for i in range(n):
     precision, recall, thresholds = precision_recall_curve(test.wtbz, test[methods[i] + 'DefaultPred'])
     df = pd.DataFrame(np.column_stack((precision, recall)))
-    df.to_csv('../data2/pr_' + methods[i] + '.csv')
+    df.to_csv('../data/pr_' + methods[i] + '.csv')

@@ -101,7 +101,7 @@ def baseModel(model, vars, t, train, test, seed):
     for tr, val in kf.split(train):
         model.fit(train[vars].iloc[train.index[tr]], train['wtbz'].iloc[train.index[tr]])
         train[t + 'DefaultPred'].iloc[train.index[val]] = model.predict_proba(train[vars].iloc[train.index[val]])[:, 1]
-    # model.fit(train[vars], train['wtbz'])
+    model.fit(train[vars], train['wtbz'])
     test[t + 'DefaultPred'] = model.predict_proba(test[vars])[:, 1]
     f1, precision, recall = bestF1(test.wtbz, test[t + 'DefaultPred'])
     result = {'AUC': roc_auc_score(test.wtbz, test[t + 'DefaultPred']), 'F1': f1, 'PRECISION': precision,
