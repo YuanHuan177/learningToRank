@@ -180,7 +180,6 @@ def pred(x):
 
 
 train[t + 'DefaultPred'] = pd.concat([train[vars], train[s + 'wtbz']], axis=1).apply(pred, axis=1)[s + 'wtbz']
-# joblib.dump(model, '../data2/' + str(t) + '.jl')
 f1, precision, recall = bestF1(train.wtbz, train[t + 'DefaultPred'])
 result = {'AUC': roc_auc_score(train.wtbz, train[t + 'DefaultPred']), 'F1': f1, 'PRECISION': precision,
           'RECALL': recall}
