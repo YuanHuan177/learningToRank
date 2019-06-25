@@ -7,6 +7,10 @@
 
 
 # -*- coding: utf8 -*-
+# column_order_2015 = ['nsrdzdah', 'ZCDZ_YB', 'LSGX', 'HY', 'DJZCLX', 'KY_MONTH', 'NSRZT', 'NSRLX', 'ZCDNSR_NUM', 'ZRR_NUM',
+#                 'FDDBR_AGE', 'FDDBR_JG', 'CWFZR_AGE', 'CWFZR_REGION', 'BSR_AGE', 'BSR_REGION', 'CYRS', 'TZZE', 'ZCZB',
+#                 'NXXZE', 'XFQC_NUM', 'NGXZE', 'GFQC_NUM', 'SF_RATIO_AVG', 'SF_AVG', 'SJDKSE_RATIO_AVG',
+#                 'YNSE_RATIO_AVG', 'XFJSHJ_MEAN', 'XFJSHJ_MEDIAN', 'IS_JC', 'AJLY', 'XSFYL', 'LRL', 'WTBZ']
 column_order_2015 = ['nsrdzdah', 'ZCDZ_YB', 'LSGX', 'HY', 'DJZCLX', 'KY_MONTH', 'NSRZT', 'NSRLX', 'ZCDNSR_NUM', 'ZRR_NUM',
                 'FDDBR_AGE', 'FDDBR_JG', 'CWFZR_AGE', 'CWFZR_REGION', 'BSR_AGE', 'BSR_REGION', 'CYRS', 'TZZE', 'ZCZB',
                 'NXXZE', 'XFQC_NUM', 'NGXZE', 'GFQC_NUM', 'SF_RATIO_AVG', 'SF_AVG', 'SJDKSE_RATIO_AVG',
@@ -84,7 +88,7 @@ table_list_2015 = {
         SELECT
           b.nsrdzdah,
           TZF+GD AS ZRR_NUM
-        FROM 
+        FROM
         (
         SELECT A.NSRDZDAH,TZF,GD
         FROM
@@ -93,17 +97,17 @@ table_list_2015 = {
                 count(DISTINCT (ZJHM)) AS TZF
               FROM DJ_TZF a
               WHERE EXTRACT (YEAR FROM a.LRRQ) <2016
-              GROUP BY NSRDZDAH) a 
+              GROUP BY NSRDZDAH) a
               full join
           (
             SELECT XH.NSRDZDAH,count(DISTINCT (GD.ZJHM)) AS GD
-            FROM SB_NDSDS_2014 xh, SB_NDSDS_2014_JCXX_GD gd 
-            WHERE XH.PZXH = GD.PZXH 
+            FROM SB_NDSDS_2014 xh, SB_NDSDS_2014_JCXX_GD gd
+            WHERE XH.PZXH = GD.PZXH
             AND   EXTRACT (YEAR FROM xh.sssq_q) < 2016
             AND EXTRACT (YEAR FROM xh.sssq_z) > 2014
             GROUP BY XH.NSRDZDAH
           )b on  a.NSRDZDAH=B.NSRDZDAH) a
-        RIGHT JOIN (SELECT NSRDZDAH FROM lg_data14_15_BIG WHERE YEARS=2015) b ON a.NSRDZDAH = b.nsrdzdah       
+        RIGHT JOIN (SELECT NSRDZDAH FROM lg_data14_15_BIG WHERE YEARS=2015) b ON a.NSRDZDAH = b.nsrdzdah
         ''',
     'FDDBR_AGE':  # 法定代表人年龄
         '''
@@ -376,7 +380,7 @@ table_list_2015 = {
         SELECT
           q.nsrdzdah,
           p.SB_ZZS_2003_SJDKSE_ratio_avg as SJDKSE_RATIO_AVG
-        FROM 
+        FROM
           (SELECT
              NSRDZDAH,
              avg(ratio_sjdkse) AS SB_ZZS_2003_SJDKSE_ratio_avg
@@ -414,7 +418,7 @@ table_list_2015 = {
           FROM (
             (SELECT a.NSRDZDAH,
               (b.sum_ynse - a.sum_ynse) / a.sum_ynse AS ratio_ynse
-            FROM 
+            FROM
               (SELECT NSRDZDAH,
                 SUM(ynse)                                AS sum_ynse,
                 TO_CHAR(add_months(SSSQ_Q, 1), 'YYYYMM') AS rq
@@ -522,7 +526,7 @@ table_list_2015 = {
           GROUP BY NSRDZDAH
           ) a
         RIGHT JOIN (SELECT NSRDZDAH FROM lg_data14_15_BIG WHERE YEARS=2015) b
-        ON a.NSRDZDAH = b.nsrdzdah       
+        ON a.NSRDZDAH = b.nsrdzdah
        ''',
 
     'XSFYL':  # 销售费用率
@@ -535,9 +539,9 @@ table_list_2015 = {
           (SELECT
               NSRDZDAH,
               (XSFY+GLFY+CWFY)/YYCB as SSFYL
-             FROM SB_NDSDS_2014 a 
+             FROM SB_NDSDS_2014 a
              where EXTRACT (YEAR FROM sssq_q) <2016 and EXTRACT(YEAR FROM sssq_z) >2014
-             and YYCB>0 
+             and YYCB>0
              )
              group by NSRDZDAH
              )
@@ -550,12 +554,12 @@ table_list_2015 = {
           p.LRLL as LRL
         FROM
         (select NSRDZDAH,avg(LRL) as LRLL from
-          (SELECT 
+          (SELECT
               NSRDZDAH,
               LRZE/YYCB as LRL
-             FROM SB_NDSDS_2014 a 
+             FROM SB_NDSDS_2014 a
              where EXTRACT (YEAR FROM sssq_q) <2016 and EXTRACT(YEAR FROM sssq_z) >2014
-             and YYCB>0 
+             and YYCB>0
              )
              group by NSRDZDAH
              )

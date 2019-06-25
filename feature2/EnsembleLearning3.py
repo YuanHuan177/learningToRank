@@ -8,7 +8,7 @@
 import operator
 import os
 import time
-
+from imblearn.over_sampling import RandomOverSampler,SMOTE, ADASYN
 import pandas as pd
 import numpy as np
 from itertools import chain
@@ -27,7 +27,7 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.ensemble import VotingClassifier
 from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score, brier_score_loss, \
     precision_recall_curve, roc_curve, average_precision_score
-
+from sklearn.ensemble import AdaBoostClassifier
 from sklearn.externals import joblib
 
 start = time.time()
@@ -35,26 +35,28 @@ start = time.time()
 m, n = joblib.load(r"../data2/clean_reformat_2014.jl").shape
 vars = ['f' + str(i) for i in range(n - 2)]
 # myvars = ['rfDefaultPred', 'gbmDefaultPred', 'mlpDefaultPred', 'wtbz']
-myvars = ['rfDefaultPred', 'gbmDefaultPred', 'mlpDefaultPred', 'ldaDefaultPred', 'lrDefaultPred', 'dtDefaultPred',
+myvars = ['adaDefaultPred','rfDefaultPred', 'gbmDefaultPred', 'mlpDefaultPred', 'ldaDefaultPred', 'lrDefaultPred', 'dtDefaultPred',
           'nbDefaultPred',
           'svcDefaultPred', 'knnDefaultPred', 'wtbz']
 
 
 def loadDat():
     """ Load train + test sets and prep data """
-    train = joblib.load(r"../data2/clean_reformat_2014.jl")  # clean_reformat_2014是经过som-gmm 筛选的，未经过筛选的是 reformat_2014
+    train = joblib.load(r"../data2/reformat_2014.jl")  # clean_reformat_2014是经过som-gmm 筛选的，未经过筛选的是 reformat_2014
     test = joblib.load(r"../data2/reformat_2015.jl")
     all_data = joblib.load(r"../data2/reformat_all.jl")
     train.columns = ['nsrdzdah'] + vars + ['wtbz']
     test.columns = ['nsrdzdah'] + vars + ['wtbz']
     all_data.columns = ['nsrdzdah'] + vars
     finaltrain = pd.concat([train, test])
+
+
     print len(train[train['wtbz'] == 1]), len(train[train['wtbz'] == 0])
     print len(test[test['wtbz'] == 1]), len(test[test['wtbz'] == 0])
     # d = pd.concat([test[test['wtbz'] == 0].sample(2000), test[test['wtbz'] == 1].sample(2000)]).reset_index(drop=True)
     # print d.shape
     # return train, d
-    return train, test  # 注意这里时 test 为评价指标  all_data 则为给每个节点得分
+    return finaltrain, test  # 注意这里是 test 为评价指标  all_data 则为给每个节点得分
 
 
 def bestF1(truth, pred):
@@ -64,13 +66,13 @@ def bestF1(truth, pred):
     precision = 0
     recall = 0
 
-    # for cutoff in np.arange(0.01, 0.99, 0.01):
-    #     tmp = f1_score(truth, pd.Series(pred > cutoff).apply(lambda x: 1 if x else 0))
-    #     if tmp > bestf1:
-    #         bestf1 = tmp
-    #         bestcut = cutoff
-    #         precision = precision_score(truth, pd.Series(pred > cutoff).apply(lambda x: 1 if x else 0))
-    #         recall = recall_score(truth, pd.Series(pred > cutoff).apply(lambda x: 1 if x else 0))
+    for cutoff in np.arange(0.01, 0.99, 0.01):
+        tmp = f1_score(truth, pd.Series(pred > cutoff).apply(lambda x: 1 if x else 0))
+        # if tmp > bestf1:
+        #     bestf1 = tmp
+        #     bestcut = cutoff
+        #     precision = precision_score(truth, pd.Series(pred > cutoff).apply(lambda x: 1 if x else 0))
+        #     recall = recall_score(truth, pd.Series(pred > cutoff).apply(lambda x: 1 if x else 0))
     cutoff = 0.5
     bestf1 = f1_score(truth, pd.Series(pred > cutoff).apply(lambda x: 1 if x else 0))
     precision = precision_score(truth, pd.Series(pred > cutoff).apply(lambda x: 1 if x else 0))
@@ -109,6 +111,8 @@ models = {
 
 def runDefaultModels(train, test, seed):
     """ Run all default models """
+    #AdaBoost Model
+    adaDefault,adaModel=defaultModel(AdaBoostClassifier(), vars, "ada", train, test, seed)
 
     # RF Model
     rfDefault, rfModel = defaultModel(
@@ -117,6 +121,7 @@ def runDefaultModels(train, test, seed):
                                min_samples_split=models['defaultRF']['min_samples_split'],
                                max_features=models['defaultRF']['max_features'], n_jobs=10, random_state=seed + 29),
         vars, "rf", train, test, seed)
+
     # GBM Model
     gbmDefault, gbmModel = defaultModel(
         GradientBoostingClassifier(n_estimators=models['defaultGBM']['n_estimators'],
@@ -143,9 +148,9 @@ def runDefaultModels(train, test, seed):
     #     print "test blended F1:  " + str(np.round(bestF1(test.wtbz,test['defaultPred']),5))
     f1Judgedict = {myvars[0]: rfDefault.get('F1'), myvars[1]: gbmDefault.get('F1'), myvars[2]: mlpDefault.get('F1'),
                    myvars[3]: mlpDefault.get('F1'), myvars[4]: mlpDefault.get('F1'), myvars[5]: mlpDefault.get('F1'),
-                   myvars[6]: mlpDefault.get('F1'), myvars[7]: mlpDefault.get('F1'), myvars[8]: mlpDefault.get('F1')}
+                   myvars[6]: mlpDefault.get('F1'), myvars[7]: mlpDefault.get('F1'), myvars[8]: mlpDefault.get('F1'),myvars[9]: mlpDefault.get('F1')}
     f1Judge = pd.DataFrame(sorted(f1Judgedict.items(), key=operator.itemgetter(1), reverse=True))[0]
-    allmodel = dict([rfModel, gbmModel, mlpModel, ldaModel, lrModel, dtModel, nbModel, svcModel, knnModel])
+    allmodel = dict([adaModel,rfModel, gbmModel, mlpModel, ldaModel, lrModel, dtModel, nbModel, svcModel, knnModel])
 
     return train, test, f1Judge, allmodel
 
@@ -166,8 +171,8 @@ def vote(x):
 s = 'selectClassfier'
 train[s + 'wtbz'] = train[myvars].apply(vote, axis=1)
 model = DecisionTreeClassifier(max_depth=18, max_features='sqrt')
-model.fit(train[myvars], train[s + 'wtbz'])
-test[s + 'wtbz'] = model.predict(test[myvars])
+model.fit(train[myvars], train[s + 'wtbz'])     ###？？？   train[vars]
+test[s + 'wtbz'] = model.predict(test[myvars])   ###??   test[vars]
 
 # 输出训练后集成方法的指标结果
 t = 'ensemble'
@@ -176,10 +181,10 @@ joblib.dump(model, '../data2/' + str(t) + '.jl')
 
 def pred(x):
     #return joblib.load(r"../data2/" + str(x[s + 'wtbz'])[:-11] + ".jl").predict(x[vars].reshape(1, -1))  速度慢
-    return allmodel.get(x[s + 'wtbz']).predict(x[vars].reshape(1, -1))
+    return allmodel.get(x[s + 'wtbz']).predict(x[vars].values.reshape(1, -1))[0]
 
 
-train[t + 'DefaultPred'] = pd.concat([train[vars], train[s + 'wtbz']], axis=1).apply(pred, axis=1)[s + 'wtbz']
+train[t + 'DefaultPred'] = pd.concat([train[vars], train[s + 'wtbz']], axis=1).apply(pred, axis=1)#[s + 'wtbz']   ??注释掉
 f1, precision, recall = bestF1(train.wtbz, train[t + 'DefaultPred'])
 result = {'AUC': roc_auc_score(train.wtbz, train[t + 'DefaultPred']), 'F1': f1, 'PRECISION': precision,
           'RECALL': recall}
@@ -188,7 +193,9 @@ print t + " RECALL:  " + str(np.round(result['RECALL'], 5))
 print t + " AUC: " + str(np.round(result['AUC'], 5))
 print t + " F1:  " + str(np.round(result['F1'], 5)) + '\n'
 
-test[t + 'DefaultPred'] = pd.concat([test[vars], test[s + 'wtbz']], axis=1).apply(pred, axis=1)[s + 'wtbz']
+
+test[t + 'DefaultPred'] = pd.concat([test[vars], test[s + 'wtbz']], axis=1).apply(pred, axis=1)#[s + 'wtbz']
+f1, precision, recall = bestF1(test.wtbz, test[t + 'DefaultPred'])
 result2 = {'AUC': roc_auc_score(test.wtbz, test[t + 'DefaultPred']), 'F1': f1, 'PRECISION': precision,
           'RECALL': recall}
 print t + " PRECISION:  " + str(np.round(result2['PRECISION'], 5))
@@ -197,6 +204,8 @@ print t + " AUC: " + str(np.round(result2['AUC'], 5))
 print t + " F1:  " + str(np.round(result2['F1'], 5)) + '\n'
 end = time.time()
 print 'time: %s' % (end - start)
+
+
 # 输出预测概率分值, 注意  不用 输出上面的评价指标
 # compliance=pd.merge(test[['nsrdzdah','ensembleDefaultPred']],joblib.load(r"../data2/reformat_2015.jl")[['nsrdzdah','WTBZ']],on='nsrdzdah',how='left')
 # s = (compliance['ensembleDefaultPred'] - compliance['ensembleDefaultPred'].min())/(compliance['ensembleDefaultPred'].max() - compliance['ensembleDefaultPred'].min())
@@ -212,27 +221,61 @@ print 'time: %s' % (end - start)
 from sklearn.metrics import roc_curve
 
 # methods = ['ensemble', 'lda', 'lr', 'dt', 'knn', 'svc','mlp','nb']
-methods = ['lda', 'lr', 'svc', 'nb', 'dt', 'knn', 'ensemble']
+methods = ['ada','rf', 'gbm','lda', 'lr', 'svc', 'nb', 'dt', 'knn', 'ensemble']
 n = len(methods)
 # 对比方法指标
+# for i in range(n):
+#     print '========' + str(methods[i])
+#     # print test[methods[i] + 'DefaultPred'].apply(lambda x: '%.4f' % x)
+#     cutoff = 0.5
+#     print 'best cutoff:==================='+str(cutoff)
+#     #cutoff = test[methods[i] + 'DefaultPred'].median()
+#     f1 = f1_score(test.wtbz, pd.Series(test[methods[i] + 'DefaultPred'] > cutoff).apply(lambda x: 1 if x else 0))
+#     print '%.3f' % f1
+#     precision = precision_score(test.wtbz,
+#                                 pd.Series(test[methods[i] + 'DefaultPred'] > cutoff).apply(lambda x: 1 if x else 0))
+#     print '%.3f' % precision
+#
+#     fpr, tpr, thresholds = roc_curve(test.wtbz, test[methods[i] + 'DefaultPred'].apply(lambda x: 1 if x > 1 else x))
+#     print  '%.3f' % np.max(tpr - fpr)
+#
+#     bs = brier_score_loss(test.wtbz,
+#                           test[methods[i] + 'DefaultPred'].apply(lambda x: x if x > 0 else 0).apply(
+#                               lambda x: 1 if x > 1 else x))
+#     print '%.3f' % bs
+#
+#     ap = average_precision_score(test.wtbz, test[methods[i] + 'DefaultPred'])
+#     print '%.3f' % ap
+#
+#     auc = roc_auc_score(test.wtbz, test[methods[i] + 'DefaultPred'])
+#     print '%.3f' % auc
+#
+#     a = test.wtbz[test[methods[i] + 'DefaultPred'] < cutoff]
+#     b = test[methods[i] + 'DefaultPred'][test[methods[i] + 'DefaultPred'] < cutoff]
+#     try:
+#         auc = roc_auc_score(a, b)
+#     except ValueError:
+#         pass
+#
+#     pg = 2 * auc - 1
+#     print '%.3f' % pg
+
 for i in range(n):
     print '========' + str(methods[i])
     # print test[methods[i] + 'DefaultPred'].apply(lambda x: '%.4f' % x)
-
     cutoff = 0.5
-    # cutoff = test[methods[i] + 'DefaultPred'].median()
+    print 'best cutoff:==================='+str(cutoff)
+    #cutoff = test[methods[i] + 'DefaultPred'].median()
     f1 = f1_score(test.wtbz, pd.Series(test[methods[i] + 'DefaultPred'] > cutoff).apply(lambda x: 1 if x else 0))
     print '%.3f' % f1
-    precision = precision_score(test.wtbz,
-                                pd.Series(test[methods[i] + 'DefaultPred'] > cutoff).apply(lambda x: 1 if x else 0))
+    precision = precision_score(test.wtbz,pd.Series(test[methods[i] + 'DefaultPred'] > cutoff).apply(lambda x: 1 if x else 0) )
     print '%.3f' % precision
 
-    fpr, tpr, thresholds = roc_curve(test.wtbz, test[methods[i] + 'DefaultPred'].apply(lambda x: 1 if x > 1 else x))
+    fpr, tpr, thresholds = roc_curve(test.wtbz, test[methods[i] + 'DefaultPred'])
     print  '%.3f' % np.max(tpr - fpr)
 
     bs = brier_score_loss(test.wtbz,
-                          test[methods[i] + 'DefaultPred'].apply(lambda x: x if x > 0 else 0).apply(
-                              lambda x: 1 if x > 1 else x))
+                          test[methods[i] + 'DefaultPred'])
     print '%.3f' % bs
 
     ap = average_precision_score(test.wtbz, test[methods[i] + 'DefaultPred'])
@@ -241,17 +284,10 @@ for i in range(n):
     auc = roc_auc_score(test.wtbz, test[methods[i] + 'DefaultPred'])
     print '%.3f' % auc
 
-    a = test.wtbz[test[methods[i] + 'DefaultPred'] < cutoff]
-    b = test[methods[i] + 'DefaultPred'][test[methods[i] + 'DefaultPred'] < cutoff]
-    try:
-        auc = roc_auc_score(a, b)
-    except ValueError:
-        pass
-
     pg = 2 * auc - 1
     print '%.3f' % pg
 
-# roc 曲线
+#roc 曲线
 for i in range(n):
     fpr, tpr, thresholds = roc_curve(test.wtbz, test[methods[i] + 'DefaultPred'])
     df = pd.DataFrame(np.column_stack((fpr, tpr, thresholds)))

@@ -34,7 +34,7 @@ X = joblib.load(r"../data2/reformat_2014.jl").drop(columns=['nsrdzdah', 'WTBZ'])
 Y = joblib.load(r"../data2/reformat_2014.jl")['WTBZ']
 nsr = Data_2014['nsrdzdah']
 dm, dn = X.shape
-
+print dm,dn
 som = MiniSom(20, 20, dn, sigma=1.0, learning_rate=1)  # initialization of 6x6 SOM
 som.train_random(X.values, dm)  # trains the SOM with 100 iterations
 joblib.dump(som.get_weights(), '../data2/som20*20.jl')
@@ -54,9 +54,9 @@ err = pd.read_csv('../data2/error_before.csv', header=0, index_col=0).values
 dism = pd.read_csv('../data2/dism_before.csv', header=0, index_col=0).values
 from sklearn.preprocessing import MinMaxScaler
 d=pd.DataFrame(MinMaxScaler().fit_transform(allcount))
-d.to_csv('../data2/allcount_before1.csv')
+d.to_csv('../data2/allcount_before1.csv')    # √
 # print allcount
-e=pd.DataFrame(err)
+e=pd.DataFrame(1-err).fillna(0)
 e.to_csv('../data2/error_before1.csv')
 
 
@@ -129,7 +129,7 @@ c=pd.DataFrame(MinMaxScaler().fit_transform(allcount))
 print c
 c[mask==0]=-1
 print c
-c.to_csv('../data2/allcount_after1.csv')
+c.to_csv('../data2/allcount_after1.csv')  #√
 
 
 err[mask==0] = -1
